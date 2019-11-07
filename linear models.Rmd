@@ -1,0 +1,73 @@
+---
+title: "Linear Models"
+author: "Stephanie Zhen"
+date: "11/7/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+
+set.seed(1)
+```
+
+## Data Cleaning
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb %>% 
+  mutate(stars = review_scores_location / 2) %>% 
+  rename(
+    boro = neighbourhood_group,
+    neighborhood = neighbourhood) %>% 
+  filter(boro != "Staten Island") %>% 
+  select(price, stars, boro, neighborhood, room_type)
+```
+
+Fitting Linear regression
+```{r}
+fit = lm(price ~ stars + boro, data = nyc_airbnb)
+
+fit
+
+summary(fit)
+summary(fit)$coeff
+coef(fit)
+```
+
+
+Tidy the redults:
+```{r}
+fit %>% 
+  broom::tidy() %>% 
+  mutate(term = str_replace(term, "boro", "Boro: ")) %>% 
+  knitr::kable(digits = 3)
+```
+
+### Take a look at factors/categorical predictors, and refitting model:
+```{r}
+nyc_airbnb = nyc_airbnb %>% 
+  mutate(
+    boro = fct_infreq(boro),
+    room_type = fct_infreq(room_type))
+
+fit_fct = lm(price ~ stars + boro, data = nyc_airbnb)
+fit_fct %>% 
+  broom::tidy() %>% 
+  mutate(term = str_replace(term, "boro", "Boro: ")) %>% 
+  knitr::kable(digits = 3)
+
+##broom package helps tidy a lot of outputs. 
+## the p-value in broom glance test the global null hypothesis. 
+fit_fct %>% 
+  broom::glance()
+```
+
+
+
