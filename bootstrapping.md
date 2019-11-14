@@ -193,3 +193,20 @@ nyc_airbnb %>%
     ## Warning: Removed 9962 rows containing missing values (geom_point).
 
 ![](bootstrapping_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+Reuse what we just did:
+
+``` r
+nyc_airbnb %>% 
+  filter(boro == "Manhattan") %>% 
+  modelr::bootstrap(n = 1000) %>% 
+  mutate(
+    models = map(strap, ~ lm(price ~ stars + room_type, data = .x)),
+    results = map(models, broom::tidy)) %>% 
+  select(results) %>% 
+  unnest(results) %>% 
+  filter(term == "stars") %>% 
+  ggplot(aes(x = estimate)) + geom_density()
+```
+
+![](bootstrapping_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
